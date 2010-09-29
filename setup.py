@@ -1,4 +1,3 @@
-import shutil, os, re
 from setuptools import setup, find_packages
 
 app_name = 'django-chronograph'
