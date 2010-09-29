@@ -175,6 +175,8 @@ class LogAdmin(admin.ModelAdmin):
         return False
     
     def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs.pop("request", None)
+
         if isinstance(db_field, models.TextField):
             kwargs['widget'] = HTMLWidget()
             return db_field.formfield(**kwargs)
