@@ -48,12 +48,12 @@ class Job(models.Model):
     run_in_shell = models.BooleanField(default=False, help_text=_('This command needs to run within a shell?'))
     args = models.CharField(_("args"), max_length=200, blank=True,
         help_text=_("Space separated list; e.g: arg1 option1=True"))
-    disabled = models.BooleanField(default=False, help_text=_('If checked this job will never run.'))
+    disabled = models.BooleanField(_("disabled"), default=False, help_text=_('If checked this job will never run.'))
     next_run = models.DateTimeField(_("next run"), blank=True, null=True, help_text=_("If you don't set this it will be determined automatically"))
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
     is_running = models.BooleanField(_("Running?"), default=False, editable=False)
     last_run_successful = models.BooleanField(default=True, blank=False, null=False, editable=False)
-    subscribers = models.ManyToManyField(User, blank=True)
+    subscribers = models.ManyToManyField(User, blank=True, verbose_name=_("subscribers"))
 
     objects = JobManager()
 

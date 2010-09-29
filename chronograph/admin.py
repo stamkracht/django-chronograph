@@ -36,16 +36,16 @@ class JobForm(forms.ModelForm):
     def clean_shell_command(self):
         if self.cleaned_data.get('command', '').strip() and \
                 self.cleaned_data.get('shell_command', '').strip():
-            raise forms.ValidationError("Can't specify a shell_command if "
-                              "a django admin command is already specified")
+            raise forms.ValidationError(_("Can't specify a shell_command if "
+                              "a django admin command is already specified"))
         return self.cleaned_data['shell_command']
 
     def clean(self):
         cleaned_data = super(JobForm, self).clean()
         if len(cleaned_data.get('command', '').strip()) and \
                 len(cleaned_data.get('shell_command', '').strip()):
-            raise forms.ValidationError("Must specify either command or "
-                                        "shell command")
+            raise forms.ValidationError(_("Must specify either command or "
+                                        "shell command"))
         return cleaned_data
 
 class JobAdmin(admin.ModelAdmin):
@@ -61,15 +61,15 @@ class JobAdmin(admin.ModelAdmin):
     ordering = ('last_run', )
     
     fieldsets = (
-        ('Job Details', {
+        (_('Job Details'), {
             'classes': ('wide',),
             'fields': ('name', 'command', 'shell_command', 'run_in_shell', 'args', 'disabled',)
         }),
-        ('E-mail subscriptions', {
+        (_('E-mail subscriptions'), {
             'classes': ('wide',),
             'fields': ('subscribers',)
         }),
-        ('Frequency options', {
+        (_('Frequency options'), {
             'classes': ('wide',),
             'fields': ('frequency', 'next_run', 'params',)
         }),
@@ -90,7 +90,7 @@ class JobAdmin(admin.ModelAdmin):
         
         return '<a href="%s">%s</a>' % (url, value)
     last_run_with_link.allow_tags = True
-    last_run_with_link.short_description = 'Last run'
+    last_run_with_link.short_description = _('Last run')
     last_run_with_link.admin_order_field = 'last_run'
     
     def job_success(self, obj):
@@ -102,13 +102,13 @@ class JobAdmin(admin.ModelAdmin):
         on_click = "window.location='%d/run/?inline=1';" % obj.id
         return '<input type="button" onclick="%s" value="Run" />' % on_click
     run_button.allow_tags = True
-    run_button.short_description = 'Run'
+    run_button.short_description = _('Run')
     
     def view_logs_button(self, obj):
         on_click = "window.location='../log/?job=%d';" % obj.id
         return '<input type="button" onclick="%s" value="View Logs" />' % on_click
     view_logs_button.allow_tags = True
-    view_logs_button.short_description = 'Logs'
+    view_logs_button.short_description = _('Logs')
     
     def run_job_view(self, request, pk):
         """
@@ -143,7 +143,7 @@ class LogAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('job',)
         }),
-        ('Output', {
+        (_('Output'), {
             'fields': ('stdout', 'stderr',)
         }),
     )
@@ -162,14 +162,14 @@ class LogAdmin(admin.ModelAdmin):
         if len(result) > 40:
             result = result[:40] + '...'
         
-        return result or '(No output)'
+        return result or _('(No output)')
     
     def errors(self, obj):
         result = obj.stderr or ''
         if len(result) > 40:
             result = result[:40] + '...'
         
-        return result or '(No errors)'
+        return result or _('(No errors)')
     
     def has_add_permission(self, request):
         return False
