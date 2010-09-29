@@ -1,13 +1,3 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.mail import send_mail
-from django.utils.timesince import timeuntil
-from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
-from django.template import loader, Context
-from django.conf import settings
-from django.utils.encoding import smart_str
-
-import os
 import sys
 import traceback
 import subprocess
@@ -16,6 +6,15 @@ import shlex
 from datetime import datetime
 from dateutil import rrule
 from StringIO import StringIO
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.utils.timesince import timeuntil
+from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
+from django.template import loader, Context
+from django.conf import settings
+from django.utils.encoding import smart_str
 
 class JobManager(models.Manager):
     def due(self):

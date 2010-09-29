@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.db import models
 from django import forms
-from django.utils.translation import ungettext, ugettext_lazy as _, get_date_formats
-from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.utils.translation import ugettext_lazy as _, get_date_formats
+from django.http import HttpResponseRedirect, Http404
 from django.conf.urls.defaults import patterns, url
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
@@ -83,12 +83,12 @@ class JobAdmin(admin.ModelAdmin):
         
         try:
             # Old way
-            url = reverse('chronograph_log_change', args=(log_id,))
+            reversed_url = reverse('chronograph_log_change', args=(log_id,))
         except:
             # New way
-            url = reverse('admin:chronograph_log_change', args=(log_id,))
+            reversed_url = reverse('admin:chronograph_log_change', args=(log_id,))
         
-        return '<a href="%s">%s</a>' % (url, value)
+        return '<a href="%s">%s</a>' % (reversed_url, value)
     last_run_with_link.allow_tags = True
     last_run_with_link.short_description = _('Last run')
     last_run_with_link.admin_order_field = 'last_run'
@@ -175,8 +175,6 @@ class LogAdmin(admin.ModelAdmin):
         return False
     
     def formfield_for_dbfield(self, db_field, **kwargs):
-        request = kwargs.pop("request", None)
-        
         if isinstance(db_field, models.TextField):
             kwargs['widget'] = HTMLWidget()
             return db_field.formfield(**kwargs)
