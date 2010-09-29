@@ -104,7 +104,7 @@ class Job(models.Model):
         """
         Returns the rrule objects for this Job.
         """
-        frequency = eval('rrule.%s' % self.frequency)
+        frequency = getattr(rrule, self.frequency, rrule.DAILY)
         return rrule.rrule(frequency, dtstart=self.last_run, **self.get_params())
     rrule = property(get_rrule)
 
