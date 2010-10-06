@@ -59,19 +59,17 @@ class JobAdmin(admin.ModelAdmin):
     filter_horizontal = ('subscribers',)
     search_fields = ('name', )
     ordering = ('last_run', )
+    raw_id_fields = ('subscribers',)
     
     fieldsets = (
         (_('Job Details'), {
             'classes': ('wide',),
             'fields': ('name', 'command', 'shell_command', 'run_in_shell', 'args', 'disabled',)
         }),
-        # E-mail subscriptions is temporarily disabled since the many users in
-        # the Antenne installation freeze the interface.  
-        
-        # (_('E-mail subscriptions'), {
-        #     'classes': ('wide',),
-        #     'fields': ('subscribers',)
-        # }),
+        (_('E-mail subscriptions'), {
+            'classes': ('wide',),
+            'fields': ('subscribers',)
+        }),
         (_('Frequency options'), {
             'classes': ('wide',),
             'fields': ('frequency', 'next_run', 'params',)
