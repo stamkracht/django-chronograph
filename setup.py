@@ -4,7 +4,7 @@ app_name = 'django-chronograph'
 
 setup(
     name=app_name,
-    version='0.1.4',
+    version='0.1.5',
     description='Django chronograph application.',
     author='Weston Nielson',
     author_email='wnielson@gmail.com',
