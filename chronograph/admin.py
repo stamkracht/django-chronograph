@@ -65,10 +65,13 @@ class JobAdmin(admin.ModelAdmin):
             'classes': ('wide',),
             'fields': ('name', 'command', 'shell_command', 'run_in_shell', 'args', 'disabled',)
         }),
-        (_('E-mail subscriptions'), {
-            'classes': ('wide',),
-            'fields': ('subscribers',)
-        }),
+        # E-mail subscriptions is temporarily disabled since the many users in
+        # the Antenne installation freeze the interface.  
+        
+        # (_('E-mail subscriptions'), {
+        #     'classes': ('wide',),
+        #     'fields': ('subscribers',)
+        # }),
         (_('Frequency options'), {
             'classes': ('wide',),
             'fields': ('frequency', 'next_run', 'params',)
