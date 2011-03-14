@@ -66,7 +66,7 @@ class Job(models.Model):
             return _(u"%(name)s - disabled") % {'name': self.name}
         return u"%s - %s" % (self.name, self.timeuntil)
 
-    def save(self, force_insert=False, force_update=False):
+    def save(self, *args, **kwargs):
         if not self.disabled:
             if not self.last_run:
                 self.last_run = datetime.now()
@@ -75,7 +75,7 @@ class Job(models.Model):
         else:
             self.next_run = None
 
-        super(Job, self).save(force_insert, force_update)
+        super(Job, self).save(*args, **kwargs)
 
     def get_timeuntil(self):
         """
@@ -182,7 +182,7 @@ class Job(models.Model):
             stderr = stderr_str,
             success = self.last_run_successful,
         )
-        
+
         # If there was any output to stderr, e-mail it to any error (defualt) subscribers.
         # We'll assume that if there was any error output, even if there was also info ouput
         # That an error exists and needs to be dealt with
