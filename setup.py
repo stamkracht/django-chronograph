@@ -1,11 +1,10 @@
-import shutil, os, re
 from setuptools import setup, find_packages
 
 app_name = 'django-chronograph'
 
 setup(
     name=app_name,
-    version='0.1.7.1',
+    version='0.1.8',
     description='Django chronograph application.',
     author='Weston Nielson',
     author_email='wnielson@gmail.com',

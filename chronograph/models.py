@@ -1,13 +1,3 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.mail import send_mail
-from django.utils.timesince import timeuntil
-from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
-from django.template import loader, Context
-from django.conf import settings
-from django.utils.encoding import smart_str
-
-import os
 import sys
 import traceback
 import subprocess
@@ -16,6 +6,15 @@ import shlex
 from datetime import datetime
 from dateutil import rrule
 from StringIO import StringIO
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.utils.timesince import timeuntil
+from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
+from django.template import loader, Context
+from django.conf import settings
+from django.utils.encoding import smart_str
 
 class JobManager(models.Manager):
     def due(self):
@@ -48,13 +47,13 @@ class Job(models.Model):
     run_in_shell = models.BooleanField(default=False, help_text=_('This command needs to run within a shell?'))
     args = models.CharField(_("args"), max_length=200, blank=True,
         help_text=_("Space separated list; e.g: arg1 option1=True"))
-    disabled = models.BooleanField(default=False, help_text=_('If checked this job will never run.'))
+    disabled = models.BooleanField(_("disabled"), default=False, help_text=_('If checked this job will never run.'))
     next_run = models.DateTimeField(_("next run"), blank=True, null=True, help_text=_("If you don't set this it will be determined automatically"))
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
     is_running = models.BooleanField(_("Running?"), default=False, editable=False)
     last_run_successful = models.BooleanField(default=True, blank=False, null=False, editable=False)
     info_subscribers = models.ManyToManyField(User, related_name='info_subscribers_set', blank=True)
-    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True)
+    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True, verbose_name=_("subscribers"))
 
     objects = JobManager()
 
