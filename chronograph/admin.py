@@ -126,7 +126,7 @@ class JobAdmin(admin.ModelAdmin):
             job = Job.objects.get(pk=pk)
         except Job.DoesNotExist:
             raise Http404
-        job.run(save=False)
+        job.run()
         request.user.message_set.create(message=_('The job "%(job)s" was run successfully.') % {'job': job})
 
         if 'inline' in request.GET:
