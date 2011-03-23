@@ -39,7 +39,11 @@ class Job(models.Model):
     name = models.CharField(_("name"), max_length=200)
     frequency = models.CharField(_("frequency"), choices=freqs, max_length=10)
     params = models.TextField(_("params"), null=True, blank=True,
-        help_text=_('Comma-separated list of <a href="http://labix.org/python-dateutil" target="_blank">rrule parameters</a>. e.g: interval:15'))
+        help_text=_(
+            'Semicolon separated list (no spaces) of '
+            '<a href="http://labix.org/python-dateutil" target="_blank">rrule '
+            'parameters</a>. e.g: interval:15 or byhour:6;byminute:40'
+    ))
     command = models.CharField(_("command"), max_length=200,
         help_text=_("A valid django-admin command to run."), blank=True)
     shell_command = models.CharField(_("shell command"), max_length=255,
