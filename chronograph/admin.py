@@ -26,6 +26,8 @@ class HTMLWidget(forms.Widget):
             obj = self.rel.to._default_manager.get(**{key: value})
             related_url = '../../../%s/%s/%d/' % (self.rel.to._meta.app_label, self.rel.to._meta.object_name.lower(), value)
             value = "<a href='%s'>%s</a>" % (related_url, escape(obj))
+        else:
+            value = escape(value)
 
         final_attrs = self.build_attrs(attrs, name=name)
         return mark_safe("<div%s>%s</div>" % (flatatt(final_attrs), linebreaks(value)))
