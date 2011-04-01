@@ -67,7 +67,7 @@ class JobAdmin(admin.ModelAdmin):
     list_filter = ('last_run_successful', 'frequency', 'disabled')
     search_fields = ('name', )
     ordering = ('last_run', )
-    raw_id_fields = ('subscribers', 'info_subscribers')
+    filter_horizontal = ('subscribers', 'info_subscribers')
 
     fieldsets = (
         (_('Job Details'), {
