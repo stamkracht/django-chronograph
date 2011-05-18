@@ -9,7 +9,9 @@ from StringIO import StringIO
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.utils.timesince import timeuntil
 from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
 from django.template import loader, Context
@@ -57,7 +59,7 @@ class Job(models.Model):
     is_running = models.BooleanField(_("Running?"), default=False, editable=False)
     last_run_successful = models.BooleanField(default=True, blank=False, null=False, editable=False)
     info_subscribers = models.ManyToManyField(User, related_name='info_subscribers_set', blank=True)
-    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True, verbose_name=_("subscribers"))
+    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True, verbose_name=_("error subscribers"))
 
     objects = JobManager()
 
@@ -295,12 +297,16 @@ class Log(models.Model):
 
         if is_info:
             subscriber_set = self.job.info_subscribers.all()
+            info_output = self.stdout
         else:
             subscriber_set = self.job.subscribers.all()
+            info_output = "http://%(site)s%(path)s" % {
+                'site': Site.objects.get_current(),
+                'path': reverse("admin:chronograph_log_change", args=(self.id,)),
+            }
 
         for user in subscriber_set:
             subscribers.append('"%s" <%s>' % (user.get_full_name(), user.email))
-
 
         message_body = """
 ********************************************************************************
@@ -309,28 +315,32 @@ RUN DATE: %(run_date)s
 END DATE: %(end_date)s
 SUCCESSFUL: %(success)s
 ********************************************************************************
+""" % {
+    'job_name': self.job.name,
+    'run_date': self.run_date,
+    'end_date': self.end_date,
+    'success': self.success,
+}
 
+        if not self.success:
+            message_body += """
 ********************************************************************************
 ERROR OUTPUT
 ********************************************************************************
 %(error_output)s
+""" % {'error_output': self.stderr}
 
+        message_body += """
 ********************************************************************************
 INFORMATIONAL OUTPUT
 ********************************************************************************
 %(info_output)s
-""" % { 'job_name': self.job.name,
-        'run_date': self.run_date,
-        'end_date': self.end_date,
-        'success': self.success,
-        'info_output': self.stdout,
-        'error_output': self.stderr, }
+""" % {'info_output': info_output}
 
         send_mail(
             from_email = '"%s" <%s>' % (settings.EMAIL_SENDER, settings.EMAIL_HOST_USER),
             subject = '%s' % self,
             recipient_list = subscribers,
-            #essage = "Ouput:\n%s\nError output:\n%s" % (self.stdout, self.stderr)
             message = message_body
         )
 
