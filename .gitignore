@@ -1,7 +1,7 @@
 # Compiled Python and backup files
 *.py[co]
 *~
-
+.idea
 # Easy Install stuff
 build
 dist
