@@ -1,16 +1,16 @@
 from django.contrib import admin
 from django.db import models
 from django import forms
-from django.utils.translation import ugettext_lazy as _, get_date_formats
+from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponseRedirect, Http404
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.forms.util import flatatt
 from django.forms import Textarea
 from django.utils.html import escape
 from django.utils.text import capfirst
-from django.utils import dateformat
+from django.utils import dateformat, formats
 from django.template.defaultfilters import linebreaks
 
 from chronograph.models import Job, Log
@@ -91,7 +91,7 @@ class JobAdmin(admin.ModelAdmin):
         return queryset.update(is_running=False)
 
     def last_run_with_link(self, obj):
-        format = get_date_formats()[1]
+        format = formats.get_format('DATETIME_FORMAT')
         value = capfirst(dateformat.format(obj.last_run, format))
 
         log_id = obj.log_set.latest('run_date').id
