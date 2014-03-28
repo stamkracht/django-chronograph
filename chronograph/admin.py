@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import models
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -134,7 +134,7 @@ class JobAdmin(admin.ModelAdmin):
         except Job.DoesNotExist:
             raise Http404
         job.run()
-        request.user.message_set.create(message=_('The job "%(job)s" was run successfully.') % {'job': job})
+        messages.success(request, ('The job "%(job)s" was run successfully.') % {'job': job})
 
         if 'inline' in request.GET:
             redirect = request.path + '../../'
