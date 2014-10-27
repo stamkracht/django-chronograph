@@ -2,6 +2,7 @@ import sys
 import traceback
 import subprocess
 import shlex
+import ast
 
 from datetime import datetime
 from dateutil import rrule
@@ -142,7 +143,7 @@ class Job(models.Model):
         for arg in self.args.split():
             if arg.find('=') > -1:
                 key, value = arg.split('=')
-                options[smart_str(key)] = smart_str(value)
+                options[smart_str(key)] = ast.literal_eval(smart_str(value))
             else:
                 args.append(arg)
         return (args, options)
