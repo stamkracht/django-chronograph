@@ -3,6 +3,7 @@ import traceback
 import subprocess
 import shlex
 import ast
+import warnings
 
 from datetime import datetime
 from dateutil import rrule
@@ -162,10 +163,11 @@ class Job(models.Model):
         stdout_str, stderr_str = "", ""
 
         try:
-            if self.shell_command:
-                stdout_str, stderr_str = self.run_shell_command()
-            else:
-                stdout_str, stderr_str = self.run_management_command()
+            with WarningsToStdout():
+                if self.shell_command:
+                    stdout_str, stderr_str = self.run_shell_command()
+                else:
+                    stdout_str, stderr_str = self.run_management_command()
         finally:
             # since jobs can be long running, reload the object to pick up
             # any updates to the object since the job started
@@ -349,3 +351,16 @@ def _escape_shell_command(command):
     for n in ('`', '$', '"'):
         command = command.replace(n, '\%s' % n)
     return command
+
+
+class WarningsToStdout(object):
+    def showwarning_stdout(self, message, category, filename, lineno, file=None, line=None):
+        return self.org_showwarning(message, category, filename, lineno, sys.stdout, line)
+
+    def __enter__(self):
+        self.org_showwarning = warnings.showwarning
+        warnings.showwarning = self.showwarning_stdout
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        warnings.showwarning = self.org_showwarning
+
