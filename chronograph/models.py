@@ -342,7 +342,7 @@ INFORMATIONAL OUTPUT
 
         send_mail(
             from_email = '"%s" <%s>' % (settings.EMAIL_SENDER, settings.EMAIL_HOST_USER),
-            subject = '%s' % self,
+            subject = '[Chronograph] %s' % self,
             recipient_list = subscribers,
             message = message_body
         )
