@@ -35,6 +35,7 @@ class HTMLWidget(forms.Widget):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
+        exclude = ()
         widgets = {
             'command': Textarea(attrs={'cols': 80, 'rows': 6}),
             'shell_command': Textarea(attrs={'cols': 80, 'rows': 6}),
