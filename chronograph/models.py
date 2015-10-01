@@ -19,6 +19,7 @@ from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
 from django.template import loader, Context
 from django.conf import settings
 from django.utils.encoding import smart_str
+import pytz
 
 class JobManager(models.Manager):
     def due(self):
@@ -92,7 +93,7 @@ class Job(models.Model):
         if self.disabled:
             return _('never (disabled)')
 
-        delta = self.next_run - datetime.now()
+        delta = self.next_run - datetime.now(pytz.utc)
         if delta.days < 0:
             # The job is past due and should be run as soon as possible
             return _('due')
@@ -363,4 +364,3 @@ class WarningsToStdout(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         warnings.showwarning = self.org_showwarning
-
