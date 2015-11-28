@@ -26,7 +26,7 @@ class JobManager(models.Manager):
         """
         Returns a ``QuerySet`` of all jobs waiting to be run.
         """
-        return self.filter(next_run__lte=datetime.now(), disabled=False, is_running=False)
+        return self.filter(next_run__lte=datetime.utcnow(), disabled=False, is_running=False)
 
 # A lot of rrule stuff is from django-schedule
 freqs = (   ("YEARLY", _("Yearly")),
@@ -77,7 +77,7 @@ class Job(models.Model):
     def save(self, *args, **kwargs):
         if not self.disabled:
             if not self.last_run:
-                self.last_run = datetime.now()
+                self.last_run = datetime.utcnow()
             if not self.next_run:
                 self.next_run = self.rrule.after(self.last_run)
         else:
@@ -93,7 +93,7 @@ class Job(models.Model):
         if self.disabled:
             return _('never (disabled)')
 
-        delta = self.next_run - datetime.now(pytz.utc)
+        delta = self.next_run - datetime.utcnow()
         if delta.days < 0:
             # The job is past due and should be run as soon as possible
             return _('due')
@@ -157,7 +157,7 @@ class Job(models.Model):
 
         A ``Log`` will be created if there is any output from either stdout or stderr.
         """
-        run_date = datetime.now()
+        run_date = datetime.utcnow()
         self.is_running = True
         self.save()
 
@@ -183,7 +183,7 @@ class Job(models.Model):
             self.next_run = self.rrule.after(run_date)
             self.save()
 
-        end_date = datetime.now()
+        end_date = datetime.utcnow()
 
         # Create a log entry no matter what to see the last time the Job ran:
         log = Log.objects.create(
