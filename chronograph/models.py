@@ -4,11 +4,9 @@ import subprocess
 import shlex
 import ast
 import warnings
-
 from datetime import datetime
 from dateutil import rrule
 from StringIO import StringIO
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -21,21 +19,31 @@ from django.conf import settings
 from django.utils.encoding import smart_str
 import pytz
 
+
 class JobManager(models.Manager):
     def due(self):
         """
         Returns a ``QuerySet`` of all jobs waiting to be run.
         """
-        return self.filter(next_run__lte=datetime.utcnow(), disabled=False, is_running=False)
+        return self.filter(next_run__lte=get_now, disabled=False, is_running=False)
+
+
+def get_now():
+    """ get timezone naive/aware object for now depending on USE_TZ setting
+    :return: datetime object
+    """
+    return datetime.now(tz=pytz.utc) if settings.USE_TZ else datetime.utcnow()
+
 
 # A lot of rrule stuff is from django-schedule
-freqs = (   ("YEARLY", _("Yearly")),
-            ("MONTHLY", _("Monthly")),
-            ("WEEKLY", _("Weekly")),
-            ("DAILY", _("Daily")),
-            ("HOURLY", _("Hourly")),
-            ("MINUTELY", _("Minutely")),
-            ("SECONDLY", _("Secondly")))
+freqs = (("YEARLY", _("Yearly")),
+         ("MONTHLY", _("Monthly")),
+         ("WEEKLY", _("Weekly")),
+         ("DAILY", _("Daily")),
+         ("HOURLY", _("Hourly")),
+         ("MINUTELY", _("Minutely")),
+         ("SECONDLY", _("Secondly")))
+
 
 class Job(models.Model):
     """
@@ -44,25 +52,27 @@ class Job(models.Model):
     name = models.CharField(_("name"), max_length=200)
     frequency = models.CharField(_("frequency"), choices=freqs, max_length=10)
     params = models.TextField(_("params"), null=True, blank=True,
-        help_text=_(
-            'Semicolon separated list (no spaces) of '
-            '<a href="http://labix.org/python-dateutil" target="_blank">rrule '
-            'parameters</a>. e.g: interval:15 or byhour:6;byminute:40'
-    ))
+                              help_text=_(
+                                  'Semicolon separated list (no spaces) of '
+                                  '<a href="http://labix.org/python-dateutil" target="_blank">rrule '
+                                  'parameters</a>. e.g: interval:15 or byhour:6;byminute:40'
+                              ))
     command = models.CharField(_("command"), max_length=200,
-        help_text=_("A valid django-admin command to run."), blank=True)
+                               help_text=_("A valid django-admin command to run."), blank=True)
     shell_command = models.CharField(_("shell command"), max_length=255,
-        help_text=_("A shell command."), blank=True)
+                                     help_text=_("A shell command."), blank=True)
     run_in_shell = models.BooleanField(default=False, help_text=_('This command needs to run within a shell?'))
     args = models.CharField(_("args"), max_length=200, blank=True,
-        help_text=_("Space separated list; e.g: arg1 option1=True"))
+                            help_text=_("Space separated list; e.g: arg1 option1=True"))
     disabled = models.BooleanField(_("disabled"), default=False, help_text=_('If checked this job will never run.'))
-    next_run = models.DateTimeField(_("next run"), blank=True, null=True, help_text=_("If you don't set this it will be determined automatically"))
+    next_run = models.DateTimeField(_("next run"), blank=True, null=True,
+                                    help_text=_("If you don't set this it will be determined automatically"))
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
     is_running = models.BooleanField(_("Running?"), default=False, editable=False)
     last_run_successful = models.BooleanField(default=True, blank=False, null=False, editable=False)
     info_subscribers = models.ManyToManyField(User, related_name='info_subscribers_set', blank=True)
-    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True, verbose_name=_("error subscribers"))
+    subscribers = models.ManyToManyField(User, related_name='error_subscribers_set', blank=True,
+                                         verbose_name=_("error subscribers"))
 
     objects = JobManager()
 
@@ -75,9 +85,10 @@ class Job(models.Model):
         return u"%s - %s" % (self.name, self.timeuntil)
 
     def save(self, *args, **kwargs):
+
         if not self.disabled:
             if not self.last_run:
-                self.last_run = datetime.utcnow()
+                self.last_run = get_now()
             if not self.next_run:
                 self.next_run = self.rrule.after(self.last_run)
         else:
@@ -93,7 +104,7 @@ class Job(models.Model):
         if self.disabled:
             return _('never (disabled)')
 
-        delta = self.next_run - datetime.utcnow()
+        delta = self.next_run - get_now()
         if delta.days < 0:
             # The job is past due and should be run as soon as possible
             return _('due')
@@ -106,6 +117,7 @@ class Job(models.Model):
             }
 
         return timeuntil(self.next_run)
+
     get_timeuntil.short_description = _('time until next run')
     timeuntil = property(get_timeuntil)
 
@@ -115,6 +127,7 @@ class Job(models.Model):
         """
         frequency = getattr(rrule, self.frequency, rrule.DAILY)
         return rrule.rrule(frequency, dtstart=self.last_run, **self.get_params())
+
     rrule = property(get_rrule)
 
     def get_params(self):
@@ -157,7 +170,7 @@ class Job(models.Model):
 
         A ``Log`` will be created if there is any output from either stdout or stderr.
         """
-        run_date = datetime.utcnow()
+        run_date = get_now()
         self.is_running = True
         self.save()
 
@@ -183,16 +196,16 @@ class Job(models.Model):
             self.next_run = self.rrule.after(run_date)
             self.save()
 
-        end_date = datetime.utcnow()
+        end_date = get_now()
 
         # Create a log entry no matter what to see the last time the Job ran:
         log = Log.objects.create(
-            job = self,
-            run_date = run_date,
-            end_date = end_date,
-            stdout = stdout_str,
-            stderr = stderr_str,
-            success = self.last_run_successful,
+            job=self,
+            run_date=run_date,
+            end_date=end_date,
+            stdout=stdout_str,
+            stderr=stderr_str,
+            success=self.last_run_successful,
         )
 
         # If there was any output to stderr, e-mail it to any error (defualt) subscribers.
@@ -248,9 +261,9 @@ class Job(models.Model):
             command = shlex.split(command.encode('ascii'))
         try:
             proc = subprocess.Popen(command,
-                                    shell = bool(self.run_in_shell),
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.PIPE)
+                                    shell=bool(self.run_in_shell),
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
 
             stdout_str, stderr_str = proc.communicate()
             if proc.returncode:
@@ -265,12 +278,10 @@ class Job(models.Model):
     def _get_exception_string(self, e, exc_info):
         t = loader.get_template('chronograph/error_message.txt')
         c = Context({
-                'exception': unicode(e),
-                'traceback': ['\n'.join(traceback.format_exception(*exc_info))]
-                })
+            'exception': unicode(e),
+            'traceback': ['\n'.join(traceback.format_exception(*exc_info))]
+        })
         return t.render(c)
-
-
 
 
 class Log(models.Model):
@@ -320,11 +331,11 @@ END DATE: %(end_date)s
 SUCCESSFUL: %(success)s
 ********************************************************************************
 """ % {
-    'job_name': self.job.name,
-    'run_date': self.run_date,
-    'end_date': self.end_date,
-    'success': self.success,
-}
+            'job_name': self.job.name,
+            'run_date': self.run_date,
+            'end_date': self.end_date,
+            'success': self.success,
+        }
 
         if not self.success:
             message_body += """
@@ -342,11 +353,12 @@ INFORMATIONAL OUTPUT
 """ % {'info_output': info_output}
 
         send_mail(
-            from_email = '"%s" <%s>' % (settings.EMAIL_SENDER, settings.EMAIL_HOST_USER),
-            subject = '[Chronograph] %s' % self,
-            recipient_list = subscribers,
-            message = message_body
+            from_email='"%s" <%s>' % (settings.EMAIL_SENDER, settings.EMAIL_HOST_USER),
+            subject='[Chronograph] %s' % self,
+            recipient_list=subscribers,
+            message=message_body
         )
+
 
 def _escape_shell_command(command):
     for n in ('`', '$', '"'):
