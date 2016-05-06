@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.conf.urls import patterns, url
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
-from django.forms.util import flatatt
+from django.forms.utils import flatatt
 from django.forms import Textarea
 from django.utils.html import escape
 from django.utils.text import capfirst
