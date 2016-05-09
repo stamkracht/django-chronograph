@@ -4,7 +4,6 @@ import subprocess
 import shlex
 import ast
 import warnings
-from datetime import datetime
 from dateutil import rrule
 from StringIO import StringIO
 from django.db import models
@@ -13,11 +12,11 @@ from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.utils.timesince import timeuntil
+from django.utils.timezone import now as tz_now
 from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
 from django.template import loader, Context
 from django.conf import settings
 from django.utils.encoding import smart_str
-import pytz
 
 
 class JobManager(models.Manager):
@@ -25,14 +24,7 @@ class JobManager(models.Manager):
         """
         Returns a ``QuerySet`` of all jobs waiting to be run.
         """
-        return self.filter(next_run__lte=get_now, disabled=False, is_running=False)
-
-
-def get_now():
-    """ get timezone naive/aware object for now depending on USE_TZ setting
-    :return: datetime object
-    """
-    return datetime.now(tz=pytz.utc) if settings.USE_TZ else datetime.utcnow()
+        return self.filter(next_run__lte=tz_now(), disabled=False, is_running=False)
 
 
 # A lot of rrule stuff is from django-schedule
@@ -88,7 +80,7 @@ class Job(models.Model):
 
         if not self.disabled:
             if not self.last_run:
-                self.last_run = get_now()
+                self.last_run = tz_now()
             if not self.next_run:
                 self.next_run = self.rrule.after(self.last_run)
         else:
@@ -104,7 +96,7 @@ class Job(models.Model):
         if self.disabled:
             return _('never (disabled)')
 
-        delta = self.next_run - get_now()
+        delta = self.next_run - tz_now()
         if delta.days < 0:
             # The job is past due and should be run as soon as possible
             return _('due')
@@ -170,7 +162,7 @@ class Job(models.Model):
 
         A ``Log`` will be created if there is any output from either stdout or stderr.
         """
-        run_date = get_now()
+        run_date = tz_now()
         self.is_running = True
         self.save()
 
@@ -196,7 +188,7 @@ class Job(models.Model):
             self.next_run = self.rrule.after(run_date)
             self.save()
 
-        end_date = get_now()
+        end_date = tz_now()
 
         # Create a log entry no matter what to see the last time the Job ran:
         log = Log.objects.create(
