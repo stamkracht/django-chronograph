@@ -140,7 +140,7 @@ class JobAdmin(admin.ModelAdmin):
         if 'inline' in request.GET:
             redirect = request.path + '../../'
         else:
-            redirect = request.REQUEST.get('next', request.path + "../")
+            redirect = request.GET.get('next', request.path + "../")
 
         return HttpResponseRedirect(redirect)
 
