@@ -111,7 +111,7 @@ class JobAdmin(admin.ModelAdmin):
 
     def job_success(self, obj):
         return obj.last_run_successful
-    job_success.short_description = _(u'OK')
+    job_success.short_description = _('OK')
     job_success.boolean = True
 
     def run_button(self, obj):
@@ -166,15 +166,15 @@ class LogAdmin(admin.ModelAdmin):
 
     def job_duration(self, obj):
         return "%s" % (obj.get_duration())
-    job_duration.short_description = _(u'Duration')
+    job_duration.short_description = _('Duration')
 
     def job_name(self, obj):
         return obj.job.name
-    job_name.short_description = _(u'Name')
+    job_name.short_description = _('Name')
 
     def job_success(self, obj):
         return obj.success
-    job_success.short_description = _(u'OK')
+    job_success.short_description = _('OK')
     job_success.boolean = True
 
     def output(self, obj):

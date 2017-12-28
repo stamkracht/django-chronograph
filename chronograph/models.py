@@ -5,7 +5,7 @@ import shlex
 import ast
 import warnings
 from dateutil import rrule
-from StringIO import StringIO
+from io import StringIO
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -73,8 +73,8 @@ class Job(models.Model):
 
     def __unicode__(self):
         if self.disabled:
-            return _(u"%(name)s - disabled") % {'name': self.name}
-        return u"%s - %s" % (self.name, self.timeuntil)
+            return _("%(name)s - disabled") % {'name': self.name}
+        return "%s - %s" % (self.name, self.timeuntil)
 
     def save(self, *args, **kwargs):
 
@@ -229,7 +229,7 @@ class Job(models.Model):
 
         try:
             call_command(self.command, *args, **options)
-        except Exception, e:
+        except Exception as e:
             exception_str = self._get_exception_string(e, sys.exc_info())
             self.last_run_successful = False
 
@@ -261,7 +261,7 @@ class Job(models.Model):
             if proc.returncode:
                 stderr_str += "\n\n*** Process ended with return code %d\n\n" % proc.returncode
             self.last_run_successful = not proc.returncode
-        except Exception, e:
+        except Exception as e:
             stderr_str += self._get_exception_string(e, sys.exc_info())
             self.last_run_successful = False
 
@@ -270,7 +270,7 @@ class Job(models.Model):
     def _get_exception_string(self, e, exc_info):
         t = loader.get_template('chronograph/error_message.txt')
         c = Context({
-            'exception': unicode(e),
+            'exception': str(e),
             'traceback': ['\n'.join(traceback.format_exception(*exc_info))]
         })
         return t.render(c)
@@ -291,7 +291,7 @@ class Log(models.Model):
         ordering = ('-run_date',)
 
     def __unicode__(self):
-        return u"%s" % self.job.name
+        return "%s" % self.job.name
 
     def get_duration(self):
         if self.end_date:
