@@ -308,7 +308,7 @@ class Log(models.Model):
         else:
             subscriber_set = self.job.subscribers.all()
             info_output = "http://%(site)s%(path)s" % {
-                'site': Site.objects.get(pk=1),
+                'site': Site.objects.first(),
                 'path': reverse("admin:chronograph_log_change", args=(self.id,)),
             }
 
